@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 )
 
@@ -27,6 +29,7 @@ var upgrader = websocket.Upgrader{
 }
 
 type Client struct {
+	id   string
 	hub  *Hub
 	conn *websocket.Conn
 	send chan []byte
@@ -99,6 +102,7 @@ func serveWS(hub *Hub, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	client := &Client{
+		id:   strings.Split(uuid.NewString(), "-")[0],
 		hub:  hub,
 		conn: conn,
 		send: make(chan []byte, 256),
