@@ -11,7 +11,7 @@ import (
 
 const (
 	TOTAL_CHAMPS = 165
-	MAX_PICKS    = 24
+	MAX_PICKS    = 25
 )
 
 type Hub struct {
