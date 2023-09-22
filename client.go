@@ -4,17 +4,22 @@ import (
 	"bytes"
 	"log"
 	"net/http"
-	"strings"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 )
 
 const (
-	writeWait      = 10 * time.Second
-	pongWait       = 90 * time.Second
-	pingPeriod     = (pongWait * 9) / 10
+	// Time allowed to write a message to the peer.
+	writeWait = 10 * time.Second
+
+	// Time allowed to read the next pong message from the peer.
+	pongWait = 60 * time.Second
+
+	// Send pings to peer with this period. Must be less than pongWait.
+	pingPeriod = (pongWait * 9) / 10
+
+	// Maximum message size allowed from peer.
 	maxMessageSize = 512
 )
 
@@ -28,16 +33,34 @@ var upgrader = websocket.Upgrader{
 	WriteBufferSize: 1024,
 }
 
+type Message struct {
+	client *Client
+	data   []byte
+}
+
+// Client is a middleman between the websocket connection and the hub.
 type Client struct {
-	id   string
-	hub  *Hub
+	id string
+
+	selection int
+
+	game *Game
+
+	// The websocket connection.
 	conn *websocket.Conn
+
+	// Buffered channel of outbound messages.
 	send chan []byte
 }
 
+// readPump pumps messages from the websocket connection to the hub.
+//
+// The application runs readPump in a per-connection goroutine. The application
+// ensures that there is at most one reader on a connection by executing all
+// reads from this goroutine.
 func (c *Client) readPump() {
 	defer func() {
-		c.hub.unregister <- c
+		c.game.unregister <- c
 		c.conn.Close()
 	}()
 	c.conn.SetReadLimit(maxMessageSize)
@@ -46,16 +69,24 @@ func (c *Client) readPump() {
 	for {
 		_, message, err := c.conn.ReadMessage()
 		if err != nil {
-			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseNormalClosure) {
+			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
 				log.Printf("error: %v", err)
 			}
 			break
 		}
 		message = bytes.TrimSpace(bytes.Replace(message, newline, space, -1))
-		c.hub.broadcast <- message
+		c.game.broadcast <- &Message{
+			client: c,
+			data:   message,
+		}
 	}
 }
 
+// writePump pumps messages from the hub to the websocket connection.
+//
+// A goroutine running writePump is started for each connection. The
+// application ensures that there is at most one writer to a connection by
+// executing all writes from this goroutine.
 func (c *Client) writePump() {
 	ticker := time.NewTicker(pingPeriod)
 	defer func() {
@@ -67,6 +98,7 @@ func (c *Client) writePump() {
 		case message, ok := <-c.send:
 			c.conn.SetWriteDeadline(time.Now().Add(writeWait))
 			if !ok {
+				// The hub closed the channel.
 				c.conn.WriteMessage(websocket.CloseMessage, []byte{})
 				return
 			}
@@ -77,6 +109,7 @@ func (c *Client) writePump() {
 			}
 			w.Write(message)
 
+			// Add queued chat messages to the current websocket message.
 			n := len(c.send)
 			for i := 0; i < n; i++ {
 				w.Write(newline)
@@ -95,20 +128,18 @@ func (c *Client) writePump() {
 	}
 }
 
-func serveWS(hub *Hub, w http.ResponseWriter, r *http.Request) {
+// serveWs handles websocket requests from the peer.
+func serveWs(hub *Game, w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println(err)
 		return
 	}
-	client := &Client{
-		id:   strings.Split(uuid.NewString(), "-")[0],
-		hub:  hub,
-		conn: conn,
-		send: make(chan []byte, 256),
-	}
-	client.hub.register <- client
+	client := &Client{game: hub, conn: conn, send: make(chan []byte, 256)}
+	client.game.register <- client
 
+	// Allow collection of memory referenced by the caller by doing all work in
+	// new goroutines.
 	go client.writePump()
 	go client.readPump()
 }
