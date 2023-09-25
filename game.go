@@ -1,10 +1,13 @@
 package main
 
 import (
+	"context"
+	"fmt"
 	"log"
 	"math/rand"
 	"net/http"
 
+	session "github.com/go-session/session/v3"
 	"github.com/google/uuid"
 )
 
@@ -77,12 +80,41 @@ func (game *Game) serveWS(w http.ResponseWriter, r *http.Request) {
 		conn: conn,
 		send: make(chan []byte, 256),
 	}
+
+	game.storeSession(w, r, client)
+
 	client.game.register <- client
 
 	// Allow collection of memory referenced by the caller by doing all work in
 	// new goroutines.
 	go client.writePump()
 	go client.readPump()
+}
+
+func (game *Game) storeSession(w http.ResponseWriter, r *http.Request, client *Client) {
+	store, err := session.Start(context.Background(), w, r)
+	if err != nil {
+		log.Println("Session creation err:", err)
+		return
+	}
+
+	store.Set(client.game.id+"-clientID", client.id)
+	err = store.Save()
+	if err != nil {
+		fmt.Fprint(w, err)
+		return
+	}
+}
+
+func (game *Game) broadcastMessage(message *Message) {
+	for client := range game.clients {
+		select {
+		case client.send <- message.data:
+		default:
+			close(client.send)
+			delete(game.clients, client)
+		}
+	}
 }
 
 func (game *Game) run() {
@@ -96,7 +128,6 @@ func (game *Game) run() {
 }
 
 func (game *Game) lobby() bool {
-	log.Println("Game", game.id, "starting lobby")
 	select {
 	case client := <-game.register:
 		game.lobbyRegister(client)
@@ -104,14 +135,7 @@ func (game *Game) lobby() bool {
 		game.lobbyUnregister(client)
 	case message := <-game.broadcast:
 		log.Println("Message from", message.client.id, message.data)
-		for client := range game.clients {
-			select {
-			case client.send <- message.data:
-			default:
-				close(client.send)
-				delete(game.clients, client)
-			}
-		}
+		game.broadcastMessage(message)
 	}
 	return true
 }
@@ -119,6 +143,10 @@ func (game *Game) lobby() bool {
 func (game *Game) lobbyRegister(client *Client) bool {
 	log.Println("Registering", client.id)
 	game.clients[client] = true
+	if len(game.clients) == 2 {
+		log.Println("Game", game.id, "starting champ select")
+		game.currentHandler = game.champSelect
+	}
 	return true
 }
 
@@ -131,6 +159,15 @@ func (game *Game) lobbyUnregister(client *Client) bool {
 	if len(game.clients) == 0 {
 		delete(game.owner, game.id)
 		return false
+	}
+	return true
+}
+
+func (game *Game) champSelect() bool {
+	select {
+	case <-game.register:
+	case <-game.unregister:
+	case <-game.broadcast:
 	}
 	return true
 }
