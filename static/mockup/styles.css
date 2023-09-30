@@ -1,6 +1,6 @@
 body {
-    margin: 0;
-    background-color: black;
+	margin: 0;
+	background-color: #01070e;
 	color: white;
 	height: 100vh;
 	width: 100vw;
@@ -8,25 +8,38 @@ body {
 }
 
 .layout {
-	display: flex;
-	gap: 2px;
-	background-color: white;
+	display: grid;
+	background-color: #01070e;
 	height: 100%;
+	grid-template-areas:
+		"player-board-container other-board-container"
+		"player-board-container selected-card-container";
+	grid-template-columns: 1fr 1fr;
+	grid-template-rows: 1fr 1fr;
+	column-gap: 5%;
 }
 
-.layout > div {
+.layout>div {
 	text-align: center;
-	padding: 5px;
 	font-size: 30px;
 }
 
 #player-board-container {
-	background-color: blue;
+	grid-area: player-board-container;
+	background-color: black;
 	flex: .7 1 auto;
+	padding: 5px;
+	background-image: linear-gradient(#021b35, #01070e);
+	border-radius: 2vmin;
+	margin: 5px;
 }
 
 #other-board-container {
-	background-color: red;
+	grid-area: other-board-container;
+	background-color: black;
+	background-image: linear-gradient(#021b35, #01070e);
+	border-radius: 2vmin;
+	margin: 5px;
 }
 
 #side-panel {
@@ -34,37 +47,55 @@ body {
 }
 
 .board {
-	display: flex;
-	flex-direction: row;
-	gap: 5px;
+	display: grid;
+	grid-template-columns: repeat(5, minmax(calc(37vw / 5), 1fr));
+	place-items: center;
 }
 
-/* .board-item {
-	max
-} */
+.board-item {
+	width: calc(37vw / 5);
+	height: calc(100% - 10px);
+}
 
 #selected-card-container {
+	grid-area: selected-card-container;
 	background-color: black;
 	display: grid;
 	place-items: center;
-	overflow: hidden;
-	max-width: 30%;
+	overflow: auto;
+	background-image: linear-gradient(#021b35, #01070e);
+	/* border: 2px solid rgb(82, 79, 79); */
+	border-radius: 2vmin;
+	margin: 5px;
 }
 
 #selected-card {
-	width: 10%;
-	aspect-ratio: 496 / 560;
 	background-color: rgba(255, 255, 255, 0.5);
 }
 
 .card {
-	/* aspect-ratio: 496 / 560; */
+	position: relative;
 	border-radius: 2vmin;
 	overflow: hidden;
-	background-color: aliceblue;
+	width: 100%;
+	height: 100%;
+	cursor: pointer;
+	transition: transform .5s;
+	background-image: url('../images/0.jpg');
+	background-size: 100% 100%;
 }
 
-.card > img {
-	height: 167px;
-	width: 187px;
+.card:hover {
+	transform: scale(1.1, 1.1);
+}
+
+.card>img {
+	width: 100%;
+}
+
+.card>span {
+	position: absolute;
+	left: 0px;
+	right: 0px;
+	bottom: 5px;
 }
