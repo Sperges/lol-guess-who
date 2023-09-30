@@ -1,31 +1,27 @@
 const testChamps = [99,31,73,149,106,51,40,61,3,108,157,48,64,160,140,123,17,152,109,113,18,95,45,37,161];
 
 window.onload = () => {
-	function createCard(id) {
-		return `
-		<div class="card">
-			<label class="label">${NAMES[id]}</label>
-			<img class="image" id="${NAMES[id].toLowerCase()}" src="../images/${id}.jpg" alt="${NAMES[id]}"/>
-		</div>
-		`
-	}
+	function populateCards(cardList) {
+		const board = document.getElementById("player-board");
+		const cards = board.getElementsByClassName("card");
+		const cardLabels = board.getElementsByClassName("card-label");
+		for (let i = 0; i < cards.length; i++) {
+			const id = cardList[i];
+			cards[i].style["backgroundImage"] = `url(../images/${id}.jpg)`;
+			cardLabels[i].innerText = NAMES[id];
+		}
+	} 
 
 	function updateSelectedCard(id) {
-		selectedCard.style["backgroundColor"] = null;
-		selectedCardImage.src = `../images/${id}.jpg`;
-		selectedCardImage.alt = NAMES[id];
+		const selectedCard = document.getElementById("selected-card");
+		const selectedCardLabel = document.getElementById("selected-card-label");
+		selectedCard.style["backgroundImage"] = `url(../images/${id}.jpg)`;
 		selectedCardLabel.innerText = NAMES[id];
 	}
 
-	const board = document.getElementById("player-board");
-	const selectedCard = document.getElementById("selected-card");
-	const selectedCardImage = document.getElementById("selected-card-img");
-	const selectedCardLabel = document.getElementById("selected-card-label");
-
-	// updateSelectedCard(testChamps[3]);
-	
-
 	console.log("populating cards");
 
-	// testChamps.forEach(id => board.innerHTML += createCard(id))
+	populateCards(testChamps);
+
+	updateSelectedCard(testChamps[5]);
 }

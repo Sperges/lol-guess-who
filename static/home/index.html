@@ -1,51 +1,146 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-<title>Chat Example</title>
-<script type="text/javascript" src="../home/script.js"></script>
-<style type="text/css">
-html {
-    overflow: hidden;
-}
-
-body {
-    overflow: hidden;
-    padding: 0;
-    margin: 0;
-    width: 100%;
-    height: 100%;
-    background: gray;
-}
-
-#log {
-    background: white;
-    margin: 0;
-    padding: 0.5em 0.5em 0.5em 0.5em;
-    position: absolute;
-    top: 0.5em;
-    left: 0.5em;
-    right: 0.5em;
-    bottom: 3em;
-    overflow: auto;
-}
-
-#form {
-    padding: 0 0.5em 0 0.5em;
-    margin: 0;
-    position: absolute;
-    bottom: 1em;
-    left: 0px;
-    width: 100%;
-    overflow: hidden;
-}
-
-</style>
-</head>
-<body>
-<div id="log"></div>
-<form id="form">
-    <input type="submit" value="Send" />
-    <input type="text" id="msg" size="64" autofocus />
-</form>
-</body>
+	<head>
+		<title>Mockup</title>
+		<script type="text/javascript" src="../home/script.js"></script>
+		<script type="text/javascript" src="../home/names.js"></script>
+		<link rel="stylesheet" href="../home/styles.css"></style>
+	</head>
+	<body>
+		<div id="layout">
+			<div id="player-board">
+				<div class="board-item">
+					<div class="card"></div>
+					<span class="card-label">Pending</span>
+				</div>
+				<div class="board-item">
+					<div class="card"></div>
+					<span class="card-label">Pending</span>
+				</div>
+				<div class="board-item">
+					<div class="card"></div>
+					<span class="card-label">Pending</span>
+				</div>
+				<div class="board-item">
+					<div class="card"></div>
+					<span class="card-label">Pending</span>
+				</div>
+				<div class="board-item">
+					<div class="card"></div>
+					<span class="card-label">Pending</span>
+				</div>
+				<div class="board-item">
+					<div class="card"></div>
+					<span class="card-label">Pending</span>
+				</div>
+				<div class="board-item">
+					<div class="card"></div>
+					<span class="card-label">Pending</span>
+				</div>
+				<div class="board-item">
+					<div class="card"></div>
+					<span class="card-label">Pending</span>
+				</div>
+				<div class="board-item">
+					<div class="card"></div>
+					<span class="card-label">Pending</span>
+				</div>
+				<div class="board-item">
+					<div class="card"></div>
+					<span class="card-label">Pending</span>
+				</div>
+				<div class="board-item">
+					<div class="card"></div>
+					<span class="card-label">Pending</span>
+				</div>
+				<div class="board-item">
+					<div class="card"></div>
+					<span class="card-label">Pending</span>
+				</div>
+				<div class="board-item">
+					<div class="card"></div>
+					<span class="card-label">Pending</span>
+				</div>
+				<div class="board-item">
+					<div class="card"></div>
+					<span class="card-label">Pending</span>
+				</div>
+				<div class="board-item">
+					<div class="card"></div>
+					<span class="card-label">Pending</span>
+				</div>
+				<div class="board-item">
+					<div class="card"></div>
+					<span class="card-label">Pending</span>
+				</div>
+				<div class="board-item">
+					<div class="card"></div>
+					<span class="card-label">Pending</span>
+				</div>
+				<div class="board-item">
+					<div class="card"></div>
+					<span class="card-label">Pending</span>
+				</div>
+				<div class="board-item">
+					<div class="card"></div>
+					<span class="card-label">Pending</span>
+				</div>
+				<div class="board-item">
+					<div class="card"></div>
+					<span class="card-label">Pending</span>
+				</div>
+				<div class="board-item">
+					<div class="card"></div>
+					<span class="card-label">Pending</span>
+				</div>
+				<div class="board-item">
+					<div class="card"></div>
+					<span class="card-label">Pending</span>
+				</div>
+				<div class="board-item">
+					<div class="card"></div>
+					<span class="card-label">Pending</span>
+				</div>
+				<div class="board-item">
+					<div class="card"></div>
+					<span class="card-label">Pending</span>
+				</div>
+				<div class="board-item">
+					<div class="card"></div>
+					<span class="card-label">Pending</span>
+				</div>
+			</div>
+			<div id="other-board">
+				<div class="other-card"></div>
+				<div class="other-card"></div>
+				<div class="other-card"></div>
+				<div class="other-card"></div>
+				<div class="other-card"></div>
+				<div class="other-card"></div>
+				<div class="other-card"></div>
+				<div class="other-card"></div>
+				<div class="other-card"></div>
+				<div class="other-card"></div>
+				<div class="other-card"></div>
+				<div class="other-card"></div>
+				<div class="other-card"></div>
+				<div class="other-card"></div>
+				<div class="other-card"></div>
+				<div class="other-card"></div>
+				<div class="other-card"></div>
+				<div class="other-card"></div>
+				<div class="other-card"></div>
+				<div class="other-card"></div>
+				<div class="other-card"></div>
+				<div class="other-card"></div>
+				<div class="other-card"></div>
+				<div class="other-card"></div>
+				<div class="other-card"></div>
+			</div>
+			<div id="selected-card-container">
+				<div id="selected-card"></div>
+				<span id="selected-card-label">Pending</span>
+			</div>
+		</div>
+	</body>
 </html>

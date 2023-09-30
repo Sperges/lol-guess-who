@@ -1,44 +1,103 @@
+const gameStates = {
+	LOBBY: 0,
+	PLAYING: 1,
+	POST_GAME: 2,
+};
+
 let conn;
+let champs;
+let boardState = new Array(25).fill(false);
+let playerId;
+let gameState = gameStates.LOBBY;
+
+function cardClicked(index) {
+		
+}
 
 window.onload = () => {
-    const msg = document.getElementById("msg");
-    const log = document.getElementById("log");
-	const gameid = window.location.href.substring(window.location.href.lastIndexOf("/")+1);
 
-    const appendLog = (item) => {
-        const doScroll = log.scrollTop > log.scrollHeight - log.clientHeight - 1;
-        log.appendChild(item);
-        if (doScroll) {
-            log.scrollTop = log.scrollHeight - log.clientHeight;
-        }
-    }
+	const otherBoard = document.getElementById("other-board");
 
-    document.getElementById("form").onsubmit = (evt) => {
-		evt.preventDefault();
-        const result = sendMessage(msg.value);
-        msg.value = "";
-        return result;
-    };
+	function updateCardDown(card, down) {
+		if (down) {
+			card.style["filter"] = "grayscale(100%) blur(5px)";
+		} else {
+			card.style["filter"] = "grayscale(0%) blur(0px)";
+		}
+	}
+
+	function populateCards(cardList) {
+		const board = document.getElementById("player-board");
+		const cards = board.getElementsByClassName("card");
+		const cardLabels = board.getElementsByClassName("card-label");
+
+		for (let i = 0; i < cards.length; i++) {
+			const card = cards[i];
+			const id = cardList[i];
+			card.style["backgroundImage"] = `url(../images/${id}.jpg)`;
+			cardLabels[i].innerText = NAMES[id];
+
+			card.addEventListener("click", (evt) => {
+				let index = i;
+				switch (gameState) {
+					case gameStates.LOBBY:
+						updateSelectedCard(champs[index]);
+						select(id);
+						break;
+					default:
+						boardState[index] = !boardState[index];
+						const down = boardState[index]
+						updateCardDown(card, down);
+						flip(index, down);
+						break;
+				}
+			});
+		}
+	}
+
+	function updateSelectedCard(id) {
+		const selectedCard = document.getElementById("selected-card");
+		const selectedCardLabel = document.getElementById("selected-card-label");
+		selectedCard.style["backgroundImage"] = `url(../images/${id}.jpg)`;
+		selectedCardLabel.innerText = NAMES[id];
+
+		selectedCard.addEventListener("click", (evt) => {
+			if (confirm("Are you sure you want to reveal your character?")) {
+				reveal();
+			}
+		});
+	}
+
+	function handleMessage(msg) {
+		console.log(msg);
+		if (msg.initialMessage) {
+			playerId = msg.initialMessage.playerid;
+			champs = msg.initialMessage.champs;
+			populateCards(champs);
+		}
+		if (msg.gameStarted) {
+			gameState = gameStates.PLAYING;
+		}
+		if (msg.flip) {
+			const card = otherBoard.getElementsByClassName("other-card")[msg.flip.index];
+			updateCardDown(card, msg.flip.down);
+		}
+		if (msg.reveal) {
+			alert(`Your opponent reveals that their character was ${NAMES[msg.reveal.index]}.`);
+		}
+	}
 
     if (window["WebSocket"]) {
+		const gameid = window.location.href.substring(window.location.href.lastIndexOf("/")+1);
         conn = new WebSocket("ws://" + document.location.host + "/ws/" + gameid);
         conn.onclose = (evt) => {
-            const item = document.createElement("div");
-            item.innerHTML = "<b>Connection closed.</b>";
-            appendLog(item);
+			console.log("Websocket connection closed");
         };
-        conn.onmessage = (evt) => {
-            const messages = evt.data.split('\n');
-            for (let i = 0; i < messages.length; i++) {
-                const item = document.createElement("div");
-                item.innerText = messages[i];
-                appendLog(item);
-            }
+        conn.onmessage = (evt) => {		
+			handleMessage(JSON.parse(evt.data));
         };
     } else {
-        const item = document.createElement("div");
-        item.innerHTML = "<b>Your browser does not support WebSockets.</b>";
-        appendLog(item);
+		console.log("Your browser does not support WebSockets.");
     }
 };
 
@@ -54,6 +113,7 @@ const sendMessage = (msg) => {
 }
 
 const select = (index) => {
+	
 	return sendMessage(JSON.stringify(
 		{
 			"requestSelectChamp": {
