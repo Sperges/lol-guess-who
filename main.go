@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-var addr = flag.String("addr", ":8080", "http service address")
+var addr = flag.String("addr", ":6611", "http service address")
 var staticDir = flag.String("static", "static", "static files directory")
 var fileServer http.Handler
 var games = make(map[string]*Game)
