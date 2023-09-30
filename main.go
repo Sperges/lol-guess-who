@@ -31,7 +31,7 @@ func serveGame(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if _, ok := games[gameid]; ok {
-		http.ServeFile(w, r, filepath.Join(*staticDir, "home/index.html"))
+		http.ServeFile(w, r, filepath.Join(*staticDir, "server/index.html"))
 		return
 	} else {
 		http.Redirect(w, r, "/404/", http.StatusSeeOther)
