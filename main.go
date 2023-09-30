@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-var addr = flag.String("addr", "127.0.0.1:8080", "http service address")
+var addr = flag.String("addr", ":8080", "http service address")
 var staticDir = flag.String("static", "static", "static files directory")
 var fileServer http.Handler
 var games = make(map[string]*Game)
@@ -81,7 +81,7 @@ func serveNotFound(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, filepath.Join(*staticDir, "404.html"))
 }
 
-func main() {
+func oldServer() {
 	flag.Parse()
 
 	fileServer = http.FileServer(http.Dir(*staticDir))
@@ -101,4 +101,8 @@ func main() {
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}
+}
+
+func main() {
+	oldServer()
 }
