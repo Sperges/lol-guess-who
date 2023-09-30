@@ -1,6 +1,6 @@
 let conn;
 
-window.onload = function () {
+window.onload = () => {
     const msg = document.getElementById("msg");
     const log = document.getElementById("log");
 	const gameid = window.location.href.substring(window.location.href.lastIndexOf("/")+1);
@@ -53,21 +53,23 @@ const sendMessage = (msg) => {
 	return true;
 }
 
-const select = (id) => {
+const select = (index) => {
 	return sendMessage(JSON.stringify(
 		{
-			"type": "select",
-			"selection": id,
+			"requestSelectChamp": {
+				"index": index,
+			}
 		}
 	))
 }
 
-const flip = (index, up) => {
+const flip = (index, down) => {
 	return sendMessage(JSON.stringify(
 		{
-			"type": "flip",
-			"index": index,
-			"up": up,
+			"flip": {
+				"index": index,
+				"down": down,
+			}
 		}
 	));
 }
@@ -75,7 +77,26 @@ const flip = (index, up) => {
 const reveal = () => {
 	return sendMessage(JSON.stringify(
 		{
-			"type": "reveal",
+			"reveal": {},
 		}
 	))
 }
+
+const chat = (msg) => {
+	return sendMessage(JSON.stringify(
+		{
+			"chat": {
+				"text": msg,
+			}
+		}
+	))
+}
+
+const requestBoardUpdate = () => {
+	return sendMessage(JSON.stringify(
+		{
+			"requestBoardUpdate": {},
+		}
+	))
+}
+

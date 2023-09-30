@@ -2,8 +2,8 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"log"
-	"net/http"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -34,23 +34,58 @@ var upgrader = websocket.Upgrader{
 }
 
 type Message struct {
-	client *Client
-	data   []byte
+	Sender             *Client             `json:"sender,omitempty"`
+	Flip               *Flip               `json:"flip,omitempty"`
+	Reveal             *Reveal             `json:"reveal,omitempty"`
+	RequestSelectChamp *RequestSelectChamp `json:"requestSelectChamp,omitempty"`
+	ChampSelected      *ChampSelected      `json:"champSelected,omitempty"`
+	Chat               *Chat               `json:"chat,omitempty"`
+	InitialMessage     *InitialMessage     `json:"initialMessage,omitempty"`
+	GameStarted        *GameStarted        `json:"gameStarted,omitempty"`
+	RequestBoardUpdate *RequestBoardUpdate `json:"requestBoardUpdate,omitempty"`
+	BoardUpdate        *BoardUpdate        `json:"boardUpdate,omitempty"`
 }
 
-// Client is a middleman between the websocket connection and the hub.
+type RequestSelectChamp struct {
+	Index int `json:"index"`
+}
+
+type ChampSelected struct{}
+
+type Flip struct {
+	Index int  `json:"index"`
+	Down  bool `json:"down"`
+}
+
+type Chat struct {
+	Text string `json:"text"`
+}
+
+type InitialMessage struct {
+	PlayerId string `json:"playerId"`
+	Champs   []int  `json:"champs"`
+}
+
+type GameStarted struct{}
+
+type RequestBoardUpdate struct{}
+
+type BoardUpdate struct {
+	SenderBoard []bool `json:"senderBoard"`
+	OtherBoard  []bool `json:"otherBoard"`
+}
+
+type Reveal struct {
+	Index int `json:"index"`
+}
+
 type Client struct {
-	id string
-
-	selection int
-
-	game *Game
-
-	// The websocket connection.
-	conn *websocket.Conn
-
-	// Buffered channel of outbound messages.
-	send chan []byte
+	id            string
+	selectedChamp int
+	board         []bool
+	game          *Game
+	conn          *websocket.Conn
+	send          chan []byte
 }
 
 // readPump pumps messages from the websocket connection to the hub.
@@ -74,12 +109,19 @@ func (c *Client) readPump() {
 			}
 			break
 		}
-		message = bytes.TrimSpace(bytes.Replace(message, newline, space, -1))
-		c.game.broadcast <- &Message{
-			client: c,
-			data:   message,
-		}
+		c.parseMessage(bytes.TrimSpace(bytes.Replace(message, newline, space, -1)))
 	}
+}
+
+func (c *Client) parseMessage(data []byte) {
+	var message Message
+	err := json.Unmarshal(data, &message)
+	if err != nil {
+		log.Println("json error:", err)
+		return
+	}
+	message.Sender = c
+	c.game.broadcast <- &message
 }
 
 // writePump pumps messages from the hub to the websocket connection.
@@ -126,20 +168,4 @@ func (c *Client) writePump() {
 			}
 		}
 	}
-}
-
-// serveWs handles websocket requests from the peer.
-func serveWs(hub *Game, w http.ResponseWriter, r *http.Request) {
-	conn, err := upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		log.Println(err)
-		return
-	}
-	client := &Client{game: hub, conn: conn, send: make(chan []byte, 256)}
-	client.game.register <- client
-
-	// Allow collection of memory referenced by the caller by doing all work in
-	// new goroutines.
-	go client.writePump()
-	go client.readPump()
 }

@@ -8,4 +8,5 @@ require (
 	github.com/go-session/session/v3 v3.2.1 // indirect
 	github.com/google/uuid v1.3.1 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
+	golang.org/x/exp v0.0.0-20230905200255-921286631fa9 // indirect
 )
