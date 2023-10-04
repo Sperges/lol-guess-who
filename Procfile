@@ -1,1 +1,1 @@
-web: lol-guess-who
+web: bin\lol-guess-who.exe

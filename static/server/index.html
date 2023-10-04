@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-		<title>Mockup</title>
+		<title>Guess Who</title>
 		<script type="text/javascript" src="../server/script.js"></script>
 		<script type="text/javascript" src="../server/names.js"></script>
 		<link rel="stylesheet" href="../server/styles.css"></style>
@@ -137,9 +137,17 @@
 				<div class="other-card"></div>
 				<div class="other-card"></div>
 			</div>
-			<div id="selected-card-container">
-				<div id="selected-card"></div>
-				<span id="selected-card-label">Pending</span>
+			<div id="info-container">
+				<div id="selected-card-container">
+					<div id="selected-card"></div>
+					<span id="selected-card-label">Pending</span>
+				</div>
+				<div id="chat-container">
+					<div id="log"></div>
+					<form id="form">
+						<input type="text" id="msg" />
+					</form>
+				</div>
 			</div>
 		</div>
 	</body>

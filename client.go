@@ -44,7 +44,12 @@ type Message struct {
 	GameStarted        *GameStarted        `json:"gameStarted,omitempty"`
 	RequestBoardUpdate *RequestBoardUpdate `json:"requestBoardUpdate,omitempty"`
 	BoardUpdate        *BoardUpdate        `json:"boardUpdate,omitempty"`
+	RequestBoardReset  *RequestBoardReset  `json:"requestBoardReset,omitempty"`
+	BoardReset         *BoardReset         `json:"boardReset,omitempty"`
+	ServerFull         *ServerFull         `json:"serverFull,omitempty"`
 }
+
+type ServerFull struct{}
 
 type RequestSelectChamp struct {
 	Index int `json:"index"`
@@ -58,12 +63,12 @@ type Flip struct {
 }
 
 type Chat struct {
-	Text string `json:"text"`
+	Sender string `json:"sender"`
+	Text   string `json:"text"`
 }
 
 type InitialMessage struct {
-	PlayerId string `json:"playerId"`
-	Champs   []int  `json:"champs"`
+	Champs []int `json:"champs"`
 }
 
 type GameStarted struct{}
@@ -78,6 +83,10 @@ type BoardUpdate struct {
 type Reveal struct {
 	Index int `json:"index"`
 }
+
+type RequestBoardReset struct{}
+
+type BoardReset struct{}
 
 type Client struct {
 	id            string

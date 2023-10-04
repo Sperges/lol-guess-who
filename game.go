@@ -104,10 +104,14 @@ loop:
 			game.registerClient(client)
 			game.sendMessage(client, &Message{
 				InitialMessage: &InitialMessage{
-					PlayerId: client.id,
-					Champs:   shuffleSlice(game.champs),
+					Champs: shuffleSlice(game.champs),
 				},
 			})
+			if game.isFull() {
+				game.broadcastMessage(&Message{
+					ServerFull: &ServerFull{},
+				})
+			}
 		case client := <-game.unregister:
 			game.unregisterClient(client)
 			if game.isEmpty() {
@@ -125,10 +129,6 @@ loop:
 }
 
 func (game *Game) handleIncomingMessage(message *Message) error {
-	if message.Chat != nil {
-		game.broadcastMessage(&Message{Chat: message.Chat})
-	}
-
 	if message.RequestSelectChamp != nil && game.state == LOBBY {
 		message.Sender.selectedChamp = message.RequestSelectChamp.Index
 		game.sendMessageToOthers(message.Sender.id, &Message{ChampSelected: &ChampSelected{}})
@@ -141,7 +141,7 @@ func (game *Game) handleIncomingMessage(message *Message) error {
 		}
 	}
 
-	if message.Reveal != nil && game.state == PLAYING {
+	if message.Reveal != nil && game.state != LOBBY {
 		game.sendMessageToOthers(message.Sender.id, &Message{
 			Reveal: &Reveal{
 				Index: message.Sender.selectedChamp,
@@ -160,6 +160,15 @@ func (game *Game) handleIncomingMessage(message *Message) error {
 		})
 	}
 
+	if message.Chat != nil {
+		game.broadcastMessage(&Message{
+			Chat: &Chat{
+				Sender: message.Sender.id,
+				Text:   message.Chat.Text,
+			},
+		})
+	}
+
 	if message.RequestBoardUpdate != nil && game.state != LOBBY {
 		var senderBoard []bool
 		var otherBoard []bool
@@ -174,6 +183,23 @@ func (game *Game) handleIncomingMessage(message *Message) error {
 			BoardUpdate: &BoardUpdate{
 				SenderBoard: senderBoard,
 				OtherBoard:  otherBoard,
+			},
+		})
+	}
+
+	if message.RequestBoardReset != nil {
+		for client := range game.clients {
+			client.selectedChamp = -1
+			client.board = make([]bool, BOARD_SIZE)
+		}
+		game.champs = generateChamps()
+		game.state = LOBBY
+		game.broadcastMessage(&Message{
+			BoardReset: &BoardReset{},
+		})
+		game.broadcastMessage(&Message{
+			InitialMessage: &InitialMessage{
+				Champs: shuffleSlice(game.champs),
 			},
 		})
 	}
