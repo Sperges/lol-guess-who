@@ -5,6 +5,7 @@ import (
 	"log"
 	"math/rand"
 	"net/http"
+	"time"
 
 	"github.com/google/uuid"
 	"golang.org/x/exp/slices"
@@ -101,21 +102,17 @@ loop:
 	for {
 		select {
 		case client := <-game.register:
-			game.registerClient(client)
-			game.sendMessage(client, &Message{
-				InitialMessage: &InitialMessage{
-					Champs: shuffleSlice(game.champs),
-				},
-			})
-			if game.isFull() {
-				game.broadcastMessage(&Message{
-					ServerFull: &ServerFull{},
-				})
-			}
+			game.handleRegister(client)
 		case client := <-game.unregister:
 			game.unregisterClient(client)
 			if game.isEmpty() {
-				break loop
+				timer := time.NewTimer(5 * time.Second)
+				select {
+				case <-timer.C:
+					break loop
+				case client := <-game.register:
+					game.handleRegister(client)
+				}
 			}
 		case message := <-game.broadcast:
 			log.Println(message)
@@ -126,6 +123,20 @@ loop:
 	}
 	log.Println("Ending game", game.id)
 	delete(game.owner, game.id)
+}
+
+func (game *Game) handleRegister(client *Client) {
+	game.registerClient(client)
+	game.sendMessage(client, &Message{
+		InitialMessage: &InitialMessage{
+			Champs: shuffleSlice(game.champs),
+		},
+	})
+	if game.isFull() {
+		game.broadcastMessage(&Message{
+			ServerFull: &ServerFull{},
+		})
+	}
 }
 
 func (game *Game) handleIncomingMessage(message *Message) error {

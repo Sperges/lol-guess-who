@@ -86,6 +86,7 @@ window.onload = () => {
 
 			selectedCard.addEventListener("click", (evt) => {
 				if (confirm("Are you sure you want to reveal your character?")) {
+					appendText("You have revealed your champion", "yellow")
 					reveal();
 				}
 			});

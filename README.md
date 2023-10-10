@@ -3,8 +3,6 @@
 ## TODO
 	- [x] champ selected indicator
 	- [x?] reset game
-	- [ ] fix refresh issue
-	- [ ] implement turns
-	- [ ] potential guessing built in?
+	- [x] fix refresh issue
 	- [ ] random pick
-	- [ ] fix second reveal
+	- [x] fix second reveal

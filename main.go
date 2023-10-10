@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -10,7 +11,8 @@ import (
 	"time"
 )
 
-var addr = flag.String("addr", ":6611", "http service address")
+var addr = flag.String("addr", "127.0.0.1", "http service address")
+var port = flag.Int("port", 6611, "http server port")
 var staticDir = flag.String("static", "static", "static files directory")
 var fileServer http.Handler
 var games = make(map[string]*Game)
@@ -92,11 +94,11 @@ func oldServer() {
 	http.HandleFunc("/", serveFiles)
 
 	server := &http.Server{
-		Addr:              *addr,
+		Addr:              fmt.Sprintf("%s:%d", *addr, *port),
 		ReadHeaderTimeout: 3 * time.Second,
 	}
 
-	log.Println("Start message")
+	log.Printf("Server listening on http://%s", server.Addr)
 	err := server.ListenAndServe()
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
